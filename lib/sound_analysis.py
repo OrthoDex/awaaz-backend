@@ -237,3 +237,27 @@ def get_mean_impediment_diff(original_file, synth_file, fn, clients=clients):
 # print(get_mean_impediment_diff(IMPEDIMENT_FILE, clients))
 # print(get_mean_impediment_diff(SYNTH_FILE, clients))
 
+import requests
+
+COLUMN_ID_MAPPING = {
+  "8678959849477767168": "mfcc",
+  "2626121950291820544": "spectral_bandwidth",
+  "4931964959505514496": "spectral_centroid",
+  "7526038344870920192": "spectral_rolloff"
+}
+
+def get_speech_classification(result):
+  columnVals = list(COLUMN_ID_MAPPING.keys())
+  values = [result[COLUMN_ID_MAPPING[i]] for i in columnVals]
+  r = requests.post(os.environ.get("ML_URL"), data={
+    "payload": {
+      "row": {
+        "values": values,
+        "columnSpecIds": columnVals
+      }
+    }
+  })
+  if r.status_code == 200:
+    return r.json()
+  else:
+    return 'none'

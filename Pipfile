@@ -16,6 +16,7 @@ gunicorn = "*"
 soundfile = "*"
 google-cloud-storage = "*"
 flask-cors = "*"
+requests = "*"
 
 [requires]
 python_version = "3.6"
