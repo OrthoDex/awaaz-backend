@@ -189,24 +189,40 @@ def get_audio_file(transcript):
 # np.mean(impediments[0]) - np.mean(impediments[1])
 clients = {"textToSpeechClient" : textToSpeechClient, "speechClient": speechClient}
 import time
+import re
 
-def get_mean_impediment_diff(fileData, user, clients=clients):
+def analyze(fileData, user, clients=clients):
   original_file = f'{user}/input-{time.time()}.wav'
   inputBlob = bucket.blob(original_file)
   inputBlob.upload_from_string(fileData, content_type='audio/wave')
+  
+  text = get_text_from_speech(original_file, clients['speechClient'])
+  synth_file = get_speech_from_text(text, clients['textToSpeechClient'], f'{original_file.split(".")[0]}_output.wav')
+  
+  analyze_dict = {}
+  for fn in [
+      librosa.feature.mfcc,
+      librosa.feature.spectral_centroid,
+      librosa.feature.spectral_bandwidth,
+      librosa.feature.spectral_rolloff
+      ]:
+
+      prop_name = re.match('<function\s(.*)\sat', str(fn)).group(1)
+      analyze_dict[prop_name] = str(get_mean_impediment_diff(original_file, synth_file, fn) or 0)
+  return analyze_dict
+
+def get_mean_impediment_diff(original_file, synth_file, fn, clients=clients):
   # with open('input.mp3', 'wb') as out:
   #     # Write the response to the output file.
   #     out.write(fileData)
   #     print('Audio content written to file "input.mp3"')
-  
-  text = get_text_from_speech(original_file, clients['speechClient'])
-  synth_file = get_speech_from_text(text, clients['textToSpeechClient'], f'{original_file.split(".")[0]}_output.wav')
   impediments = []
   for audio_file in [original_file, synth_file]:
     print(f'Loading from remote source: {audio_file}')
     data = get_binary_data_from_gcs(audio_file)
     y, sr = librosa.load(data, sr=None)
-    impediments.append(librosa.feature.chroma_stft(y, sr))
+
+    impediments.append(fn(y, sr))
 
   return np.mean(impediments[0]) - np.mean(impediments[1])
 # print(get_mean_impediment_diff(IMPEDIMENT_FILE, clients))
