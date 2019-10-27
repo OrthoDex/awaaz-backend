@@ -246,18 +246,30 @@ COLUMN_ID_MAPPING = {
   "7526038344870920192": "spectral_rolloff"
 }
 
+from google.cloud import automl_v1beta1 as automl
+project_id='calhacks6'
+compute_region='us-central1'
+model_display_name='speechimpediment_20191027035818'
+
 def get_speech_classification(result):
-  columnVals = list(COLUMN_ID_MAPPING.keys())
-  values = [result[COLUMN_ID_MAPPING[i]] for i in columnVals]
-  r = requests.post(os.environ.get("ML_URL"), data={
-    "payload": {
-      "row": {
-        "values": values,
-        "columnSpecIds": columnVals
-      }
-    }
-  })
-  if r.status_code == 200:
-    return r.json()
-  else:
-    return 'none'
+  print(result)
+  # columnVals = list(COLUMN_ID_MAPPING.keys())
+  # values = [float(result[COLUMN_ID_MAPPING[i]]) for i in columnVals]
+  values = {}
+  for k, v in result.items():
+    values[k] = float(v)
+  print(values)
+  client = automl.TablesClient(project=project_id, region=compute_region)
+  response = client.predict(
+      model_display_name=model_display_name,
+      inputs=values
+    )
+
+  print("Prediction results:")
+  class_results = []
+  for result in response.payload:
+      print("Predicted class name: {}".format(result.display_name))
+      class_results.append({"score": result.classification.score, "name": result.display_name})
+      print("Predicted class score: {}".format(
+          result.classification.score))
+  return class_results

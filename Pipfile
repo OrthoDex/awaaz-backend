@@ -17,6 +17,7 @@ soundfile = "*"
 google-cloud-storage = "*"
 flask-cors = "*"
 requests = "*"
+google-cloud-automl = "*"
 
 [requires]
 python_version = "3.6"
