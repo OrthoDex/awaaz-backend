@@ -8,12 +8,16 @@ decorator==4.4.0
 Flask==1.1.1
 google-api-core==1.14.3
 google-auth==1.6.3
+google-cloud-core==1.0.3
 google-cloud-speech==1.2.0
+google-cloud-storage==1.20.0
 google-cloud-texttospeech==0.5.0
+google-resumable-media==0.4.1
 googleapis-common-protos==1.6.0
 grpcio==1.24.3
 gunicorn==19.9.0
 idna==2.8
+inflection==0.3.1
 itsdangerous==1.1.0
 Jinja2==2.10.3
 joblib==0.14.0
@@ -27,7 +31,9 @@ pyasn1==0.4.7
 pyasn1-modules==0.2.7
 pycparser==2.19
 pydub==0.23.1
+python-dateutil==2.8.0
 python-dotenv==0.10.3
+python-magic==0.4.15
 pytz==2019.3
 requests==2.22.0
 resampy==0.2.2
