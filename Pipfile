@@ -12,6 +12,7 @@ pydub = "*"
 python-dotenv = "*"
 librosa = "*"
 google-cloud-texttospeech = "*"
+waitress = "*"
 
 [requires]
 python_version = "3.6"
