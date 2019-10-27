@@ -15,6 +15,7 @@ handlers:
 env_variables:
   ENVIRONMENT: production
   BUCKET_NAME: sound_impediment_files
+  GOOGLE_APPLICATION_CREDENTIALS: ./calhacks6-ef3b40476144-tts.json
   ML_URL: https://automl.googleapis.com/v1beta1/projects/1038781465311/locations/us-central1/models/TBL2045782120965603328:predict
 
 instance_class: F4

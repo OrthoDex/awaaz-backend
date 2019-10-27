@@ -29,7 +29,7 @@ def hello():
     """Return a friendly HTTP greeting."""
     return 'Hello World!'
 
-@app.route('/analyze', methods=['POST', 'OPTIONS'])
+@app.route('/analyze', methods=['POST'])
 def analyze():
     # if os.environ.get("ENVIRONMENT") is not "production":
     #     import pdb; pdb.set_trace()
