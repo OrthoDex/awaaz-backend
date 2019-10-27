@@ -47,6 +47,11 @@ def gen_chroma_stft(file_path):
   y, sr = librosa.load(file_path)
   return librosa.feature.chroma_stft(y, sr)
 
+def clean_soundfile(file_path):
+  stereo_to_mono(file_path)
+  y, sr = librosa.load(file_path)
+  sf.write(file_path, y, sr, subtype='PCM_16')
+
 # gen_chroma_stft('./drive/My Drive/sounds/synth.wav')
 
 # gen_chroma_stft(IMPEDIMENT_FILE)
@@ -71,7 +76,7 @@ speechClient = speech.SpeechClient()
 def get_text_from_speech(file_path, client):
   # The name of the audio file to transcribe
   file_name = file_path
-  stereo_to_mono(file_name)
+  clean_soundfile(file_path)
 
   # Loads the audio into memory
   with io.open(file_name, 'rb') as audio_file:

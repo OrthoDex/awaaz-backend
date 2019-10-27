@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "3648c28708b786fd993cd13bb46f97a8dae65dee9acd51f8516dc86c40b420c8"
+            "sha256": "2c75c34eb7d55dc585ad5b911b4a6abd5f519fe29dace657b4eab76303d57689"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -119,6 +119,13 @@
             ],
             "version": "==1.6.3"
         },
+        "google-cloud-core": {
+            "hashes": [
+                "sha256:0ee17abc74ff02176bee221d4896a00a3c202f3fb07125a7d814ccabd20d7eb5",
+                "sha256:10750207c1a9ad6f6e082d91dbff3920443bdaf1c344a782730489a9efa802f1"
+            ],
+            "version": "==1.0.3"
+        },
         "google-cloud-speech": {
             "hashes": [
                 "sha256:9e094643f7e11b888ef7c42246784016a8f64ef45cdaba119631e624c9675be8",
@@ -127,6 +134,14 @@
             "index": "pypi",
             "version": "==1.2.0"
         },
+        "google-cloud-storage": {
+            "hashes": [
+                "sha256:13a6a820311662eb91a99810568c2bca5ddc7e44e2163fed4cb3f4d47da132cf",
+                "sha256:2e7e2435978bda1c209b70a9a00b8cbc53c3b00d6f09eb2c991ebba857babf24"
+            ],
+            "index": "pypi",
+            "version": "==1.20.0"
+        },
         "google-cloud-texttospeech": {
             "hashes": [
                 "sha256:75562a8db2b0268f57c64e448d697fe82c0ffa889f09be8cbc6ba5369c9a0c59",
@@ -134,6 +149,13 @@
             ],
             "index": "pypi",
             "version": "==0.5.0"
+        },
+        "google-resumable-media": {
+            "hashes": [
+                "sha256:5fd2e641f477e50be925a55bcfdf0b0cb97c2b92aacd7b15c1d339f70d55c1c7",
+                "sha256:cdeb8fbb3551a665db921023603af2f0d6ac59ad8b48259cb510b8799505775f"
+            ],
+            "version": "==0.4.1"
         },
         "googleapis-common-protos": {
             "hashes": [
@@ -193,6 +215,14 @@
                 "sha256:f4cd049cb94d9f517b1cab5668a3b345968beba093bc79a637e671000b3540ec"
             ],
             "version": "==1.24.3"
+        },
+        "gunicorn": {
+            "hashes": [
+                "sha256:aa8e0b40b4157b36a5df5e599f45c9c76d6af43845ba3b3b0efe2c70473c2471",
+                "sha256:fa2662097c66f920f53f70621c6c58ca4a3c4d3434205e608e121b5b3b71f4f3"
+            ],
+            "index": "pypi",
+            "version": "==19.9.0"
         },
         "idna": {
             "hashes": [
@@ -481,6 +511,7 @@
                 "sha256:7fe04272cbfb94ab648acb0db31ace0800f5a4cf46e9d45b4d71ddb15abce1a0",
                 "sha256:80a3d2ed37199ffa7066c097d7b82b8413922e22870b62b54dc264bf0169f4c2"
             ],
+            "index": "pypi",
             "version": "==0.10.2"
         },
         "urllib3": {
@@ -489,14 +520,6 @@
                 "sha256:9a107b99a5393caf59c7aa3c1249c16e6879447533d0887f4336dde834c7be86"
             ],
             "version": "==1.25.6"
-        },
-        "waitress": {
-            "hashes": [
-                "sha256:278e09d6849acc1365404bbf7d790d0423b159802e850c726e8cd0a126a2dac7",
-                "sha256:f103e557725b17ae3c62f9e6005cdd85103f8b68fa86cf7c764ba7adc38ca5a2"
-            ],
-            "index": "pypi",
-            "version": "==1.3.1"
         },
         "werkzeug": {
             "hashes": [

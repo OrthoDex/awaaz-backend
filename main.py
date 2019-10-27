@@ -32,9 +32,8 @@ def hello():
 def analyze():
     # if os.environ.get("ENVIRONMENT") is not "production":
     #     import pdb; pdb.set_trace()
-    result = sound_analysis.get_mean_impediment_diff(request.data)
+    result = sound_analysis.get_mean_impediment_diff(request.data, request.headers['x-user-id'] or 'anon')
     return jsonify(result=str(result))
-
 
 if __name__ == '__main__':
     # This is used when running locally only. When deploying to Google App

@@ -12,7 +12,9 @@ pydub = "*"
 python-dotenv = "*"
 librosa = "*"
 google-cloud-texttospeech = "*"
-waitress = "*"
+gunicorn = "*"
+soundfile = "*"
+google-cloud-storage = "*"
 
 [requires]
 python_version = "3.6"
