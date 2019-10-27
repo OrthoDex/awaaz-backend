@@ -15,6 +15,7 @@ google-cloud-texttospeech = "*"
 gunicorn = "*"
 soundfile = "*"
 google-cloud-storage = "*"
+flask-cors = "*"
 
 [requires]
 python_version = "3.6"

@@ -14,13 +14,14 @@
 
 # [START gae_python37_app]
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from lib import sound_analysis
 import os
-
 
 # If `entrypoint` is not defined in app.yaml, App Engine will look for an app
 # called `app` in `main.py`.
 app = Flask(__name__)
+CORS(app)
 
 
 @app.route('/')
