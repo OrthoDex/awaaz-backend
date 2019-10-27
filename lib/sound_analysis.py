@@ -198,8 +198,9 @@ def convert_wbm_to_wave(fileData):
   wma_version.export(uploadData, format="wav")
   return uploadData.getvalue()
 
-def analyze(fileData, user, clients=clients):
-  fileData = convert_wbm_to_wave(fileData)
+def analyze(fileData, user, clients=clients, skip_web_conversion=False):
+  if not skip_web_conversion:
+    fileData = convert_wbm_to_wave(fileData)
   
   original_file = f'{user}/input-{time.time()}.wav'
   inputBlob = bucket.blob(original_file)
@@ -266,10 +267,11 @@ def get_speech_classification(result):
     )
 
   print("Prediction results:")
+  print(response.payload)
   class_results = []
   for result in response.payload:
-      print("Predicted class name: {}".format(result.display_name))
-      class_results.append({"score": result.classification.score, "name": result.display_name})
+      print("Predicted class name: {}".format(result.tables.value.string_value))
+      class_results.append({"score": result.tables.score, "name": result.tables.value.string_value})
       print("Predicted class score: {}".format(
-          result.classification.score))
+          result.tables.score))
   return class_results

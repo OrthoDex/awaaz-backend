@@ -33,7 +33,8 @@ def hello():
 def analyze():
     # if os.environ.get("ENVIRONMENT") is not "production":
     #     import pdb; pdb.set_trace()
-    result = sound_analysis.analyze(request.data, request.headers['x-user-id'] or 'anon')
+    skip_web_conversion = request.headers['skip-webm'] == 'true'
+    result = sound_analysis.analyze(request.data, request.headers['x-user-id'] or 'anon', skip_web_conversion=skip_web_conversion)
     classification = sound_analysis.get_speech_classification(result)
     result["classification"] = classification
     return jsonify(result=result)
