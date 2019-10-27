@@ -191,7 +191,16 @@ clients = {"textToSpeechClient" : textToSpeechClient, "speechClient": speechClie
 import time
 import re
 
+def convert_wbm_to_wave(fileData):
+  data = io.BytesIO(fileData)
+  wma_version = AudioSegment.from_file(data, "webm")
+  uploadData = io.BytesIO()
+  wma_version.export(uploadData, format="wav")
+  return uploadData.getvalue()
+
 def analyze(fileData, user, clients=clients):
+  fileData = convert_wbm_to_wave(fileData)
+  
   original_file = f'{user}/input-{time.time()}.wav'
   inputBlob = bucket.blob(original_file)
   inputBlob.upload_from_string(fileData, content_type='audio/wave')
