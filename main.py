@@ -13,8 +13,9 @@
 # limitations under the License.
 
 # [START gae_python37_app]
-from flask import Flask
+from flask import Flask, request, jsonify
 from lib import sound_analysis
+import os
 
 
 # If `entrypoint` is not defined in app.yaml, App Engine will look for an app
@@ -27,7 +28,12 @@ def hello():
     """Return a friendly HTTP greeting."""
     return 'Hello World!'
 
-@app.route
+@app.route('/analyze', methods=['POST', 'OPTIONS'])
+def analyze():
+    # if os.environ.get("ENVIRONMENT") is not "production":
+    #     import pdb; pdb.set_trace()
+    result = sound_analysis.get_mean_impediment_diff(request.data)
+    return jsonify(result=str(result))
 
 
 if __name__ == '__main__':

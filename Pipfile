@@ -9,6 +9,9 @@ verify_ssl = true
 Flask = "==1.1.1"
 google-cloud-speech = "*"
 pydub = "*"
+python-dotenv = "*"
+librosa = "*"
+google-cloud-texttospeech = "*"
 
 [requires]
 python_version = "3.6"

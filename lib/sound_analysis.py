@@ -9,11 +9,21 @@ Original file is located at
 
 #https://ai.googleblog.com/2019/07/parrotron-new-research-into-improving.html
 #https://devmesh.intel.com/projects/speech-assistance-using-artificial-neural-netowrk
-# from IPython.display import Audio
 import librosa
-import librosa.display
-import matplotlib.pyplot as plt
+# import librosa.display
+# import matplotlib.pyplot as plt
 import numpy as np
+from dotenv import load_dotenv
+# from IPython.display import Audio
+from pydub import AudioSegment
+import io
+# Imports the Google Cloud client library
+from google.cloud import speech
+from google.cloud.speech import enums
+from google.cloud.speech import types
+from google.cloud import texttospeech
+
+load_dotenv()
 
 # from google.colab import drive
 # drive.mount('/content/drive')
@@ -21,13 +31,13 @@ import numpy as np
 # !curl -o synth.wav https://google.github.io/tacotron/publications/parrotron/audio/blog/moon_earth_app.wav
 # !curl -o impediment.wav https://google.github.io/tacotron/publications/parrotron/audio/blog/moon_earth.wav
 
-def plot_chroma(file_path):
-  y, sr = librosa.load(file_path)
-  plt.figure(figsize=(20, 10))
-  C = librosa.feature.chroma_cqt(y=y, sr=sr)
-  librosa.display.specshow(C, y_axis='chroma')
-  plt.colorbar()
-  plt.title('Chromagram')
+# def plot_chroma(file_path):
+#   y, sr = librosa.load(file_path)
+#   plt.figure(figsize=(20, 10))
+#   C = librosa.feature.chroma_cqt(y=y, sr=sr)
+#   librosa.display.specshow(C, y_axis='chroma')
+#   plt.colorbar()
+#   plt.title('Chromagram')
   
 # plot_chroma('./drive/My Drive/sounds/synth.wav')
 
@@ -41,24 +51,18 @@ def gen_chroma_stft(file_path):
 
 # gen_chroma_stft(IMPEDIMENT_FILE)
 
-!pip install --upgrade google-cloud-speech
+# !pip install --upgrade google-cloud-speech
 
-GOOGLE_APPLICATION_CREDENTIALS='/content/drive/My Drive/sounds/calhacks6-ef3b40476144-tts.json'
-SYNTH_FILE='/content/drive/My Drive/sounds/synth.wav'
-IMPEDIMENT_FILE='/content/drive/My Drive/sounds/impediment.wav'
+# GOOGLE_APPLICATION_CREDENTIALS='/content/drive/My Drive/sounds/calhacks6-ef3b40476144-tts.json'
+# SYNTH_FILE='/content/drive/My Drive/sounds/synth.wav'
+# IMPEDIMENT_FILE='/content/drive/My Drive/sounds/impediment.wav'
 
 # !pip install pydub
-from pydub import AudioSegment
 def stereo_to_mono(audio_file_name):
     sound = AudioSegment.from_wav(audio_file_name)
     sound = sound.set_channels(1)
     sound.export(audio_file_name, format="wav")
 
-import io
-# Imports the Google Cloud client library
-from google.cloud import speech
-from google.cloud.speech import enums
-from google.cloud.speech import types
 
 # Instantiates a client
 # speechClient = speech.SpeechClient.from_service_account_json(GOOGLE_APPLICATION_CREDENTIALS)
@@ -103,7 +107,6 @@ def get_text_from_speech(file_path, client):
 Note: ssml must be well-formed according to:
     https://www.w3.org/TR/speech-synthesis/
 """
-from google.cloud import texttospeech
 
 # Instantiates a client
 # textToSpeechClient = texttospeech.TextToSpeechClient.from_service_account_json(filename=GOOGLE_APPLICATION_CREDENTIALS)
@@ -148,8 +151,15 @@ def get_audio_file(transcript):
 #     impediments.append(librosa.feature.chroma_stft(y, sr))
 
 # np.mean(impediments[0]) - np.mean(impediments[1])
+clients = {"textToSpeechClient" : textToSpeechClient, "speechClient": speechClient}
 
-def get_mean_impediment_diff(original_file, clients):
+def get_mean_impediment_diff(fileData, clients=clients):
+  with open('input.mp3', 'wb') as out:
+      # Write the response to the output file.
+      out.write(fileData)
+      print('Audio content written to file "input.mp3"')
+  
+  original_file='./input.mp3'
   text = get_text_from_speech(original_file, clients['speechClient'])
   synth_file = get_speech_from_text(text, clients['textToSpeechClient'])
   impediments = []
@@ -158,8 +168,6 @@ def get_mean_impediment_diff(original_file, clients):
     impediments.append(librosa.feature.chroma_stft(y, sr))
 
   return np.mean(impediments[0]) - np.mean(impediments[1])
-
-clients = {"textToSpeechClient" : textToSpeechClient, "speechClient": speechClient}
 # print(get_mean_impediment_diff(IMPEDIMENT_FILE, clients))
 # print(get_mean_impediment_diff(SYNTH_FILE, clients))
 
