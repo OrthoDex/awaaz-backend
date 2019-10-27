@@ -17,11 +17,20 @@ from dotenv import load_dotenv
 # from IPython.display import Audio
 from pydub import AudioSegment
 import io
+import os
 # Imports the Google Cloud client library
 from google.cloud import speech
 from google.cloud.speech import enums
 from google.cloud.speech import types
 from google.cloud import texttospeech
+from google.cloud import storage
+import soundfile as sf
+
+is_prod = os.environ.get("ENVIRONMENT") == "production"
+GOOGLE_APPLICATION_CREDENTIALS = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+
+storage_client = storage.Client() if is_prod else storage.Client.from_service_account_json(GOOGLE_APPLICATION_CREDENTIALS)
+bucket = storage_client.get_bucket(os.environ.get("BUCKET_NAME"))
 
 load_dotenv()
 
@@ -32,7 +41,7 @@ load_dotenv()
 # !curl -o impediment.wav https://google.github.io/tacotron/publications/parrotron/audio/blog/moon_earth.wav
 
 # def plot_chroma(file_path):
-#   y, sr = librosa.load(file_path)
+#   y, sr = librosa.loa)
 #   plt.figure(figsize=(20, 10))
 #   C = librosa.feature.chroma_cqt(y=y, sr=sr)
 #   librosa.display.specshow(C, y_axis='chroma')
@@ -43,14 +52,26 @@ load_dotenv()
 
 # plot_chroma('./drive/My Drive/sounds/impediment.wav')
 
+def get_binary_data_from_gcs(file_path, skipIo=False):
+  blob = bucket.blob(file_path).download_as_string()
+  if skipIo:
+    return blob
+  else:
+    return io.BytesIO(blob)
+
 def gen_chroma_stft(file_path):
-  y, sr = librosa.load(file_path)
+  y, sr = librosa.load(get_binary_data_from_gcs(file_path), sr=None)
   return librosa.feature.chroma_stft(y, sr)
 
 def clean_soundfile(file_path):
   stereo_to_mono(file_path)
-  y, sr = librosa.load(file_path)
-  sf.write(file_path, y, sr, subtype='PCM_16')
+  print(f'Loading from remote source: {file_path}')
+  y, sr = librosa.load(get_binary_data_from_gcs(file_path), sr=None)
+  data = io.BytesIO()
+  sf.write(data, y, sr, subtype='PCM_16', format='wav')
+  writeBlob = bucket.blob(file_path)
+  writeBlob.upload_from_string(data.getvalue(), content_type='audio/wave')
+  return y, sr
 
 # gen_chroma_stft('./drive/My Drive/sounds/synth.wav')
 
@@ -64,40 +85,44 @@ def clean_soundfile(file_path):
 
 # !pip install pydub
 def stereo_to_mono(audio_file_name):
-    sound = AudioSegment.from_wav(audio_file_name)
+    sound = AudioSegment.from_wav(get_binary_data_from_gcs(audio_file_name))
     sound = sound.set_channels(1)
-    sound.export(audio_file_name, format="wav")
+    uploadData = io.BytesIO()
+    sound.export(uploadData, format="wav")
+    bucket.blob(audio_file_name).upload_from_string(uploadData.getvalue(), content_type='audio/wave')
 
 
 # Instantiates a client
-# speechClient = speech.SpeechClient.from_service_account_json(GOOGLE_APPLICATION_CREDENTIALS)
-speechClient = speech.SpeechClient()
+speechClient = speech.SpeechClient() if is_prod else speech.SpeechClient.from_service_account_json(GOOGLE_APPLICATION_CREDENTIALS)
 
 def get_text_from_speech(file_path, client):
   # The name of the audio file to transcribe
   file_name = file_path
-  clean_soundfile(file_path)
-
+  y, sr = clean_soundfile(file_path)
+  
   # Loads the audio into memory
-  with io.open(file_name, 'rb') as audio_file:
-      content = audio_file.read()
-      audio = types.RecognitionAudio(content=content)
+  audio = types.RecognitionAudio(content=get_binary_data_from_gcs(file_name).getvalue())
+  # with io.open(file_name, 'rb') as audio_file:
+  #     content = audio_file.read()
+  #     audio = types.RecognitionAudio(content=content)
 
-  # print(audio)
+
+  print(f'Analyzing : {file_path}')
   config = types.RecognitionConfig(
       encoding=enums.RecognitionConfig.AudioEncoding.LINEAR16,
-      sample_rate_hertz=44100,
+      sample_rate_hertz=sr,
       language_code='en-US',
       model='default')
 
   # Detects speech in the audio file
   response = client.recognize(config, audio)
   print(f'response={response}')
+  transcript = ""
 
   for result in response.results:
-      transcript=result.alternatives[0].transcript
+      transcript += result.alternatives[0].transcript
       print('Transcript: {}'.format(result.alternatives[0].transcript))
-
+      
   return transcript
 
 # print(get_text_from_speech(SYNTH_FILE, speechClient))
@@ -114,10 +139,9 @@ Note: ssml must be well-formed according to:
 """
 
 # Instantiates a client
-# textToSpeechClient = texttospeech.TextToSpeechClient.from_service_account_json(filename=GOOGLE_APPLICATION_CREDENTIALS)
-textToSpeechClient = texttospeech.TextToSpeechClient()
+textToSpeechClient = texttospeech.TextToSpeechClient() if is_prod else texttospeech.TextToSpeechClient.from_service_account_json(filename=GOOGLE_APPLICATION_CREDENTIALS)
 
-def get_speech_from_text(text, client):
+def get_speech_from_text(text, client, output_file):
   # Set the text input to be synthesized
   synthesis_input = texttospeech.types.SynthesisInput(text=text)
 
@@ -129,19 +153,26 @@ def get_speech_from_text(text, client):
 
   # Select the type of audio file you want returned
   audio_config = texttospeech.types.AudioConfig(
-      audio_encoding=texttospeech.enums.AudioEncoding.MP3)
+      audio_encoding=texttospeech.enums.AudioEncoding.LINEAR16)
 
   # Perform the text-to-speech request on the text input with the selected
   # voice parameters and audio file type
   response = client.synthesize_speech(synthesis_input, voice, audio_config)
 
   # The response's audio_content is binary.
-  with open('output.mp3', 'wb') as out:
-      # Write the response to the output file.
-      out.write(response.audio_content)
-      print('Audio content written to file "output.mp3"')
+  blob = bucket.blob(output_file)
+  responseData = io.BytesIO(response.audio_content)
+
+  y, sr = librosa.load(responseData, sr=None)
+  data = io.BytesIO()
+  sf.write(data, y, sr, subtype='PCM_16', format='wav')
+  blob.upload_from_string(data.getvalue(), content_type='audio/wave')
+  # with open(output_file, 'wb') as out:
+  #     # Write the response to the output file.
+  #     out.write(response.audio_content)
+#       print('Audio content written to file "output.mp3"')
       
-  return 'output.mp3'
+  return output_file
 
 def get_audio_file(transcript):
   return get_speech_from_text(transcript, textToSpeechClient)
@@ -152,24 +183,29 @@ def get_audio_file(transcript):
 #   synth_file = get_audio_file()
 #   impediments = []
 #   for audio_file in [input_file, './output.mp3']:
-#     y, sr = librosa.load(audio_file)
+#     y, sr = librosa.load)
 #     impediments.append(librosa.feature.chroma_stft(y, sr))
 
 # np.mean(impediments[0]) - np.mean(impediments[1])
 clients = {"textToSpeechClient" : textToSpeechClient, "speechClient": speechClient}
+import time
 
-def get_mean_impediment_diff(fileData, clients=clients):
-  with open('input.mp3', 'wb') as out:
-      # Write the response to the output file.
-      out.write(fileData)
-      print('Audio content written to file "input.mp3"')
+def get_mean_impediment_diff(fileData, user, clients=clients):
+  original_file = f'{user}/input-{time.time()}.wav'
+  inputBlob = bucket.blob(original_file)
+  inputBlob.upload_from_string(fileData, content_type='audio/wave')
+  # with open('input.mp3', 'wb') as out:
+  #     # Write the response to the output file.
+  #     out.write(fileData)
+  #     print('Audio content written to file "input.mp3"')
   
-  original_file='./input.mp3'
   text = get_text_from_speech(original_file, clients['speechClient'])
-  synth_file = get_speech_from_text(text, clients['textToSpeechClient'])
+  synth_file = get_speech_from_text(text, clients['textToSpeechClient'], f'{original_file.split(".")[0]}_output.wav')
   impediments = []
   for audio_file in [original_file, synth_file]:
-    y, sr = librosa.load(audio_file)
+    print(f'Loading from remote source: {audio_file}')
+    data = get_binary_data_from_gcs(audio_file)
+    y, sr = librosa.load(data, sr=None)
     impediments.append(librosa.feature.chroma_stft(y, sr))
 
   return np.mean(impediments[0]) - np.mean(impediments[1])
