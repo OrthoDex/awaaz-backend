@@ -1,1 +1,1 @@
-Backend with ML code for https://github.com/OrthoDex/awaaz-backend
+Backend with ML code for https://github.com/OrthoDex/awaaz
