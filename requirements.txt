@@ -28,7 +28,7 @@ llvmlite==0.30.0
 MarkupSafe==1.1.1
 numba==0.46.0
 numpy==1.17.3
-protobuf==3.10.0
+protobuf==3.18.3
 pyasn1==0.4.7
 pyasn1-modules==0.2.7
 pycparser==2.19
